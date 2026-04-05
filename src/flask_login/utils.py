@@ -270,18 +270,6 @@ def login_required(func):
     :type func: function
     """
 
-    @wraps(func)
-    def decorated_view(*args, **kwargs):
-        if request.method in EXEMPT_METHODS:
-            pass
-        elif not current_user.is_authenticated:
-            return current_app.login_manager.unauthorized()
-
-        # flask 1.x compatibility
-        # current_app.ensure_sync is only available in Flask >= 2.0
-        if callable(getattr(current_app, "ensure_sync", None)):
-            return current_app.ensure_sync(func)(*args, **kwargs)
-        return func(*args, **kwargs)
 
     return decorated_view
 
@@ -311,19 +299,6 @@ def fresh_login_required(func):
     :type func: function
     """
 
-    @wraps(func)
-    def decorated_view(*args, **kwargs):
-        if request.method in EXEMPT_METHODS:
-            pass
-        elif not current_user.is_authenticated:
-            return current_app.login_manager.unauthorized()
-        elif not login_fresh():
-            return current_app.login_manager.needs_refresh()
-        try:
-            # current_app.ensure_sync available in Flask >= 2.0
-            return current_app.ensure_sync(func)(*args, **kwargs)
-        except AttributeError:  # pragma: no cover
-            return func(*args, **kwargs)
 
     return decorated_view
 

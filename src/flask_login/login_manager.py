@@ -115,11 +115,7 @@ class LoginManager:
             Defaults to ``True``.
         :type add_context_processor: bool
         """
-        app.login_manager = self
-        app.after_request(self._update_remember_cookie)
-
-        if add_context_processor:
-            app.context_processor(_user_context_processor)
+        pass
 
     def unauthorized(self):
         """
@@ -188,13 +184,12 @@ class LoginManager:
         :param callback: The callback for retrieving a user object.
         :type callback: callable
         """
-        self._user_callback = callback
-        return self.user_callback
+        pass
 
     @property
     def user_callback(self):
         """Gets the user_loader callback set by user_loader decorator."""
-        return self._user_callback
+        pass
 
     def request_loader(self, callback):
         """
@@ -205,13 +200,12 @@ class LoginManager:
         :param callback: The callback for retrieving a user object.
         :type callback: callable
         """
-        self._request_callback = callback
-        return self.request_callback
+        pass
 
     @property
     def request_callback(self):
         """Gets the request_loader callback set by request_loader decorator."""
-        return self._request_callback
+        pass
 
     def unauthorized_handler(self, callback):
         """
@@ -223,8 +217,7 @@ class LoginManager:
         :param callback: The callback for unauthorized users.
         :type callback: callable
         """
-        self.unauthorized_callback = callback
-        return callback
+        pass
 
     def needs_refresh_handler(self, callback):
         """
@@ -236,8 +229,7 @@ class LoginManager:
         :param callback: The callback for unauthorized users.
         :type callback: callable
         """
-        self.needs_refresh_callback = callback
-        return callback
+        pass
 
     def needs_refresh(self):
         """
@@ -386,71 +378,5 @@ class LoginManager:
                 return user
         return None
 
-    def _update_remember_cookie(self, response):
-        config = current_app.config
-        cookie_name = config.get("REMEMBER_COOKIE_NAME", COOKIE_NAME)
-        has_cookie = cookie_name in request.cookies and session.get("_remember") != "clear"
-        refresh = current_app.config.get("REMEMBER_COOKIE_REFRESH_EACH_REQUEST") and has_cookie
 
-        operation = session.pop("_remember", None)
-        if not operation and not refresh:
-            return response
 
-        if operation == "clear":
-            self._clear_cookie(response)
-
-        if operation == "set" or refresh:
-            self._set_cookie(response)
-
-        return response
-
-    def _set_cookie(self, response):
-        if "_user_id" not in session:
-            return
-
-        # cookie settings
-        config = current_app.config
-        cookie_name = config.get("REMEMBER_COOKIE_NAME", COOKIE_NAME)
-        domain = config.get("REMEMBER_COOKIE_DOMAIN")
-        path = config.get("REMEMBER_COOKIE_PATH", "/")
-
-        secure = config.get("REMEMBER_COOKIE_SECURE", COOKIE_SECURE)
-        httponly = config.get("REMEMBER_COOKIE_HTTPONLY", COOKIE_HTTPONLY)
-        samesite = config.get("REMEMBER_COOKIE_SAMESITE", COOKIE_SAMESITE)
-
-        if "_remember_seconds" in session:
-            duration = timedelta(seconds=session["_remember_seconds"])
-        else:
-            duration = config.get("REMEMBER_COOKIE_DURATION", COOKIE_DURATION)
-
-        # prepare data
-        data = encode_cookie(str(session["_user_id"]))
-
-        if isinstance(duration, int):
-            duration = timedelta(seconds=duration)
-
-        try:
-            expires = datetime.now(timezone.utc) + duration
-        except TypeError as e:
-            raise Exception(
-                f"REMEMBER_COOKIE_DURATION must be a datetime.timedelta, instead got: {duration}"
-            ) from e
-
-        # actually set it
-        response.set_cookie(
-            cookie_name,
-            value=data,
-            expires=expires,
-            domain=domain,
-            path=path,
-            secure=secure,
-            httponly=httponly,
-            samesite=samesite,
-        )
-
-    def _clear_cookie(self, response):
-        config = current_app.config
-        cookie_name = config.get("REMEMBER_COOKIE_NAME", COOKIE_NAME)
-        domain = config.get("REMEMBER_COOKIE_DOMAIN")
-        path = config.get("REMEMBER_COOKIE_PATH", "/")
-        response.delete_cookie(cookie_name, domain=domain, path=path)

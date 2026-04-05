@@ -8,23 +8,9 @@ class UserMixin:
     # We set it back to its default implementation
     __hash__ = object.__hash__
 
-    @property
-    def is_active(self):
-        return True
 
-    @property
-    def is_authenticated(self):
-        return self.is_active
 
-    @property
-    def is_anonymous(self):
-        return False
 
-    def get_id(self):
-        try:
-            return str(self.id)
-        except AttributeError:
-            raise NotImplementedError("No `id` attribute - override `get_id`") from None
 
     def __eq__(self, other):
         """
@@ -49,17 +35,6 @@ class AnonymousUserMixin:
     This is the default object for representing an anonymous user.
     """
 
-    @property
-    def is_authenticated(self):
-        return False
 
-    @property
-    def is_active(self):
-        return False
 
-    @property
-    def is_anonymous(self):
-        return True
 
-    def get_id(self):
-        return
